@@ -25,9 +25,9 @@ class PublisherJointTrajectory(Node):
         self.declare_parameter("controller_name", "position_trajectory_controller")
         self.declare_parameter("wait_sec_between_publish", 6)
         self.declare_parameter("goal_names", ["pos1", "pos2"])
-        self.declare_parameter("joints")
+        self.declare_parameter("joints", ["joint1", "joint2"])
         self.declare_parameter("check_starting_point", False)
-        self.declare_parameter("starting_point_limits")
+        self.declare_parameter("starting_point_limits", [-0.1, 0.1])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
@@ -65,7 +65,7 @@ class PublisherJointTrajectory(Node):
         # Read all positions from parameters
         self.goals = []
         for name in goal_names:
-            self.declare_parameter(name)
+            self.declare_parameter(name, "")
             goal = self.get_parameter(name).value
             if goal is None or len(goal) == 0:
                 raise Exception(f'Values for goal "{name}" not set!')
