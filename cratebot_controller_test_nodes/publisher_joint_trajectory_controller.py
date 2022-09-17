@@ -65,7 +65,11 @@ class PublisherJointTrajectory(Node):
         # Read all positions from parameters
         self.goals = []
         for name in goal_names:
-            self.declare_parameter(name, "")
+            self.get_logger().debug(
+                'Extracting positions for goal {}'.format(name)
+            )
+
+            self.declare_parameter(name)
             goal = self.get_parameter(name).value
             if goal is None or len(goal) == 0:
                 raise Exception(f'Values for goal "{name}" not set!')
