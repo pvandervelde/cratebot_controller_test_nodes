@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'cratebot_controller_test_nodes'
+package_name = 'tblaze_controller_test_nodes'
 
 setup(
     name=package_name,
@@ -20,8 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "publisher_joint_trajectory_controller = cratebot_controller_test_nodes.publisher_joint_trajectory_controller:main",
-            "publisher_velocity_controller = cratebot_controller_test_nodes.publisher_velocity_controller:main",
+            "publisher_joint_trajectory_controller = tblaze_controller_test_nodes.publisher_joint_trajectory_controller:main",
+            "publisher_velocity_controller = tblaze_controller_test_nodes.publisher_velocity_controller:main",
         ],
     },
 )
