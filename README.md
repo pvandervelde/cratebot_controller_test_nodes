@@ -1,6 +1,6 @@
-# tblaze_controller_test_nodes
+# zinger_controller_test_nodes
 
-Contains test nodes to verify that the ROS2 controllers for tblaze are working.
+Contains test nodes to verify that the ROS2 controllers for zinger are working.
 
 ## Dependencies
 
@@ -8,8 +8,8 @@ The configurations in this repository assume you have the following prerequisite
 device on which you want to run this code. That device might be an Ubuntu machine or a physical
 robot using Raspberry Pi OS.
 
-* [tblaze_description](https://github.com/pvandervelde/tblaze_description) - Contains the geometric
-  description of the tblaze robot for ROS to work with.
+* [zinger_description](https://github.com/pvandervelde/zinger_description) - Contains the geometric
+  description of the zinger robot for ROS to work with.
 
 ## Contents
 
@@ -19,5 +19,5 @@ timespan. The `publisher_velocity_controller` node publishes a set of velocities
 
 ## Usage
 
-In general the `tblaze_description` package will not directly be launched. It is designed to be
+In general the `zinger_description` package will not directly be launched. It is designed to be
 referenced by other SCUTTLE ROS packages.
