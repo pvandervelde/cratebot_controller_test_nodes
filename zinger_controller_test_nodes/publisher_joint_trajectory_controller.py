@@ -107,10 +107,17 @@ class PublisherJointTrajectory(Node):
             point.time_from_start = Duration(sec=4)
 
             traj.points.append(point)
+
+            self.get_logger().debug(
+                'Publishing movement command {} '.format(traj)
+            )
+
             self.publisher_.publish(traj)
 
             self.i += 1
             self.i %= len(self.goals)
+
+
 
         elif self.check_starting_point and not self.joint_state_msg_received:
             self.get_logger().warn(
