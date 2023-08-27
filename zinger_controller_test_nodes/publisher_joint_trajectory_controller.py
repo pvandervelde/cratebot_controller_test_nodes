@@ -88,7 +88,11 @@ class PublisherJointTrajectory(Node):
         )
 
         self.publisher_ = self.create_publisher(JointTrajectory, publish_topic, 1)
-        self.timer = self.create_timer(wait_sec_between_publish, self.timer_callback)
+        self.timer = self.create_timer(
+            wait_sec_between_publish,
+            self.timer_callback,
+            callback_group=None,
+            clock=self.get_clock())
         self.i = 0
 
     def timer_callback(self):
