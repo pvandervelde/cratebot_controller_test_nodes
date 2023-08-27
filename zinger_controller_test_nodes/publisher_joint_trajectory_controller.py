@@ -101,7 +101,7 @@ class PublisherJointTrajectory(Node):
 
             traj = JointTrajectory()
             traj.joint_names = self.joints
-            traj.header.stamp = self.get_clock().now().to_msg
+            traj.header.stamp = self.get_clock().now().to_msg()
             point = JointTrajectoryPoint()
             point.positions = self.goals[self.i]
             point.time_from_start = Duration(sec=4)
