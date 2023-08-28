@@ -52,7 +52,7 @@ def generate_launch_description():
                     "--ros-args",
                     "--log-level",
                     "node_test:=debug",
-                ]
+                ],
                 output="both",
             )
         ]
