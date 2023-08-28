@@ -48,6 +48,11 @@ def generate_launch_description():
                     {'use_sim_time': LaunchConfiguration('use_sim_time')},
                     position_goals
                 ],
+                arguments= [
+                    "--ros-args",
+                    "--log-level",
+                    "node_test:=debug",
+                ]
                 output="both",
             )
         ]
