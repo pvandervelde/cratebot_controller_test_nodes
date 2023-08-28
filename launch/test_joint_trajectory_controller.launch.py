@@ -13,10 +13,20 @@
 # limitations under the License.
 
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.substitutions.launch_configuration import LaunchConfiguration
 
+ARGUMENTS = [
+    DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        choices=['true', 'false'],
+        description='use_sim_time'
+    ),
+]
 
 def generate_launch_description():
 
@@ -34,7 +44,10 @@ def generate_launch_description():
                 package="zinger_controller_test_nodes",
                 executable="publisher_joint_trajectory_controller",
                 name="publisher_joint_trajectory_controller",
-                parameters=[position_goals],
+                parameters=[
+                    {'use_sim_time': LaunchConfiguration('use_sim_time')},
+                    position_goals
+                ],
                 output="both",
             )
         ]
