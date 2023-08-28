@@ -105,11 +105,13 @@ class PublisherJointTrajectory(Node):
             traj = JointTrajectory()
             traj.joint_names = self.joints
             #traj.header.stamp = self.get_clock().now().to_msg()
-            point = JointTrajectoryPoint()
-            point.positions = self.goals[self.i]
-            point.time_from_start = Duration(sec=1)
+            for i in range(len(self.goals)):
+                point = JointTrajectoryPoint()
+                point.positions = self.goals[i]
+                time = i * 1 + 1
+                point.time_from_start = Duration(sec=time)
 
-            traj.points.append(point)
+                traj.points.append(point)
 
             self.get_logger().info(
                 'Publishing movement command {} '.format(traj)
