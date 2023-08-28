@@ -96,6 +96,9 @@ class PublisherJointTrajectory(Node):
         self.i = 0
 
     def timer_callback(self):
+        self.get_logger().info(
+            'Timer callback called ..'
+        )
 
         if self.starting_point_ok:
 
@@ -108,7 +111,7 @@ class PublisherJointTrajectory(Node):
 
             traj.points.append(point)
 
-            self.get_logger().debug(
+            self.get_logger().info(
                 'Publishing movement command {} '.format(traj)
             )
 
