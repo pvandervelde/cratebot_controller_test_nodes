@@ -32,16 +32,9 @@ class PublisherJointTrajectory(Node):
         wait_sec_between_publish = self.get_parameter("wait_sec_between_publish").value
         goal_names = self.get_parameter("goal_names").value
         self.joints = self.get_parameter("joints").value
-        self.check_starting_point = self.get_parameter("check_starting_point").value
 
         if self.joints is None or len(self.joints) == 0:
             raise Exception('"joints" parameter is not set!')
-
-        # initialize starting point status
-        if not self.check_starting_point:
-            self.starting_point_ok = True
-        else:
-            self.starting_point_ok = False
 
         self.joint_state_msg_received = False
 
