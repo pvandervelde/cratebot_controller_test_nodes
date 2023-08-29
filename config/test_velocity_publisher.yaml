@@ -1,7 +1,7 @@
 publisher_velocity_controller:
   ros__parameters:
 
-    controller_name: "drive_module_steering_angle_controller"
+    controller_name: "drive_module_velocity_controller"
     wait_sec_between_publish: 6
 
     goal_names: ["vel1", "vel2", "vel3", "vel4"]
