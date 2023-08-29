@@ -12,8 +12,10 @@
 
 import rclpy
 from rclpy.node import Node
+from builtin_interfaces.msg import Duration
 
-from std_msgs.msg import Float64MultiArray
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from sensor_msgs.msg import JointState
 
 
 class PublisherVelocity(Node):
@@ -21,17 +23,35 @@ class PublisherVelocity(Node):
         super().__init__("publisher_velocity_controller")
         # Declare all parameters
         self.declare_parameter("controller_name", "velocity_controller")
-        self.declare_parameter("wait_sec_between_publish", 5)
-        self.declare_parameter("goal_names", ["velocity1", "velocity2"])
+        self.declare_parameter("wait_sec_between_publish", 6)
+        self.declare_parameter("goal_names", ["vel1", "vel2"])
+        self.declare_parameter("joints", ["joint1", "joint2"])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
         wait_sec_between_publish = self.get_parameter("wait_sec_between_publish").value
         goal_names = self.get_parameter("goal_names").value
+        self.joints = self.get_parameter("joints").value
+        self.check_starting_point = self.get_parameter("check_starting_point").value
 
-        # Read all velocities from parameters
+        if self.joints is None or len(self.joints) == 0:
+            raise Exception('"joints" parameter is not set!')
+
+        # initialize starting point status
+        if not self.check_starting_point:
+            self.starting_point_ok = True
+        else:
+            self.starting_point_ok = False
+
+        self.joint_state_msg_received = False
+
+        # Read all positions from parameters
         self.goals = []
         for name in goal_names:
+            self.get_logger().debug(
+                'Extracting positions for goal {}'.format(name)
+            )
+
             self.declare_parameter(name)
             goal = self.get_parameter(name).value
             if goal is None or len(goal) == 0:
@@ -42,24 +62,53 @@ class PublisherVelocity(Node):
                 float_goal.append(float(value))
             self.goals.append(float_goal)
 
-        publish_topic = "/" + controller_name + "/" + "commands"
+        publish_topic = "/" + controller_name + "/" + "joint_trajectory"
 
         self.get_logger().info(
-            f'Publishing {len(goal_names)} goals on topic "{publish_topic}"\
-              every {wait_sec_between_publish} s'
+            'Publishing {} goals on topic "{}" every {} s'.format(
+                len(goal_names), publish_topic, wait_sec_between_publish
+            )
         )
 
-        self.publisher_ = self.create_publisher(Float64MultiArray, publish_topic, 1)
-        self.timer = self.create_timer(wait_sec_between_publish, self.timer_callback)
+        self.publisher_ = self.create_publisher(JointTrajectory, publish_topic, 1)
+        self.timer = self.create_timer(
+            wait_sec_between_publish,
+            self.timer_callback,
+            callback_group=None,
+            clock=self.get_clock())
         self.i = 0
 
     def timer_callback(self):
-        msg = Float64MultiArray()
-        msg.data = self.goals[self.i]
-        self.get_logger().info(f'Publishing: "{msg.data}"')
-        self.publisher_.publish(msg)
+        self.get_logger().info(
+            'Timer callback called ..'
+        )
+
+        traj = JointTrajectory()
+        traj.joint_names = self.joints
+        #traj.header.stamp = self.get_clock().now().to_msg()
+        for i in range(len(self.goals)):
+            point = JointTrajectoryPoint()
+            point.velocities = self.goals[i]
+            time = i * 1 + 1
+            point.time_from_start = Duration(sec=time)
+
+            traj.points.append(point)
+
+        self.get_logger().info(
+            'Publishing movement command {} '.format(traj)
+        )
+
+        self.publisher_.publish(traj)
+
         self.i += 1
         self.i %= len(self.goals)
+
+    def joint_state_callback(self, msg):
+
+        if not self.joint_state_msg_received:
+            self.joint_state_msg_received = True
+        else:
+            return
 
 
 def main(args=None):
