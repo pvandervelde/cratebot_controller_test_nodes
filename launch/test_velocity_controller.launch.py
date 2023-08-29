@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.substitutions.launch_configuration import LaunchConfiguration
 
+ARGUMENTS = [
+    DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        choices=['true', 'false'],
+        description='use_sim_time'
+    ),
+]
 
 def generate_launch_description():
 
@@ -36,7 +44,15 @@ def generate_launch_description():
                 package="zinger_controller_test_nodes",
                 executable="publisher_velocity_controller",
                 name="publisher_velocity_controller",
-                parameters=[velocity_goals],
+                parameters=[
+                    {'use_sim_time': LaunchConfiguration('use_sim_time')},
+                    velocity_goals
+                ],
+                arguments= [
+                    "--ros-args",
+                    "--log-level",
+                    "node_test:=debug",
+                ],
                 output="both",
             )
         ]
