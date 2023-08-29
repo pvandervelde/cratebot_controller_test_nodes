@@ -20,14 +20,12 @@ from sensor_msgs.msg import JointState
 
 class PublisherJointTrajectory(Node):
     def __init__(self):
-        super().__init__("publisher_position_trajectory_controller")
+        super().__init__("publisher_joint_trajectory_controller")
         # Declare all parameters
         self.declare_parameter("controller_name", "position_trajectory_controller")
         self.declare_parameter("wait_sec_between_publish", 6)
         self.declare_parameter("goal_names", ["pos1", "pos2"])
         self.declare_parameter("joints", ["joint1", "joint2"])
-        self.declare_parameter("check_starting_point", False)
-        self.declare_parameter("starting_point_limits", [-0.1, 0.1])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
@@ -35,25 +33,10 @@ class PublisherJointTrajectory(Node):
         goal_names = self.get_parameter("goal_names").value
         self.joints = self.get_parameter("joints").value
         self.check_starting_point = self.get_parameter("check_starting_point").value
-        self.starting_point = {}
 
         if self.joints is None or len(self.joints) == 0:
             raise Exception('"joints" parameter is not set!')
 
-        # starting point stuff
-        if self.check_starting_point:
-            # declare nested params
-            for name in self.joints:
-                param_name_tmp = "starting_point_limits" + "." + name
-                self.declare_parameter(param_name_tmp, [-2 * 3.14159, 2 * 3.14159])
-                self.starting_point[name] = self.get_parameter(param_name_tmp).value
-
-            for name in self.joints:
-                if len(self.starting_point[name]) != 2:
-                    raise Exception('"starting_point" parameter is not set correctly!')
-            self.joint_state_sub = self.create_subscription(
-                JointState, "joint_states", self.joint_state_callback, 10
-            )
         # initialize starting point status
         if not self.check_starting_point:
             self.starting_point_ok = True
@@ -100,55 +83,29 @@ class PublisherJointTrajectory(Node):
             'Timer callback called ..'
         )
 
-        if self.starting_point_ok:
+        traj = JointTrajectory()
+        traj.joint_names = self.joints
+        #traj.header.stamp = self.get_clock().now().to_msg()
+        for i in range(len(self.goals)):
+            point = JointTrajectoryPoint()
+            point.positions = self.goals[i]
+            time = i * 1 + 1
+            point.time_from_start = Duration(sec=time)
 
-            traj = JointTrajectory()
-            traj.joint_names = self.joints
-            #traj.header.stamp = self.get_clock().now().to_msg()
-            for i in range(len(self.goals)):
-                point = JointTrajectoryPoint()
-                point.positions = self.goals[i]
-                time = i * 1 + 1
-                point.time_from_start = Duration(sec=time)
+            traj.points.append(point)
 
-                traj.points.append(point)
+        self.get_logger().info(
+            'Publishing movement command {} '.format(traj)
+        )
 
-            self.get_logger().info(
-                'Publishing movement command {} '.format(traj)
-            )
+        self.publisher_.publish(traj)
 
-            self.publisher_.publish(traj)
-
-            self.i += 1
-            self.i %= len(self.goals)
-
-
-
-        elif self.check_starting_point and not self.joint_state_msg_received:
-            self.get_logger().warn(
-                'Start configuration could not be checked! Check "joint_state" topic!'
-            )
-        else:
-            self.get_logger().warn("Start configuration is not within configured limits!")
+        self.i += 1
+        self.i %= len(self.goals)
 
     def joint_state_callback(self, msg):
 
         if not self.joint_state_msg_received:
-
-            # check start state
-            limit_exceeded = [False] * len(msg.name)
-            for idx, enum in enumerate(msg.name):
-                if (msg.position[idx] < self.starting_point[enum][0]) or (
-                    msg.position[idx] > self.starting_point[enum][1]
-                ):
-                    self.get_logger().warn(f"Starting point limits exceeded for joint {enum} !")
-                    limit_exceeded[idx] = True
-
-            if any(limit_exceeded):
-                self.starting_point_ok = False
-            else:
-                self.starting_point_ok = True
-
             self.joint_state_msg_received = True
         else:
             return

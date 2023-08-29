@@ -17,6 +17,3 @@ publisher_joint_trajectory_controller:
       - joint_chassis_to_steering_right_rear
 
     check_starting_point: false
-    starting_point_limits:
-      joint1: [-0.1, 0.1]
-      joint2: [-0.1, 0.1]
