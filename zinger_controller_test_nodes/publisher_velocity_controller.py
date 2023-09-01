@@ -24,13 +24,15 @@ class PublisherVelocity(Node):
         # Declare all parameters
         self.declare_parameter("controller_name", "velocity_controller")
         self.declare_parameter("wait_sec_between_publish", 6)
-        self.declare_parameter("goal_names", ["vel1", "vel2"])
+        self.declare_parameter("vel_names", ["vel1", "vel2"])
+        self.declare_parameter("acc_names", ["acc1", "acc2"])
         self.declare_parameter("joints", ["joint1", "joint2"])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
         wait_sec_between_publish = self.get_parameter("wait_sec_between_publish").value
-        goal_names = self.get_parameter("goal_names").value
+        vel_names = self.get_parameter("vel_names").value
+        acc_names = self.get_parameter("acc_names").value
         self.joints = self.get_parameter("joints").value
 
         if self.joints is None or len(self.joints) == 0:
@@ -38,28 +40,45 @@ class PublisherVelocity(Node):
 
         self.joint_state_msg_received = False
 
-        # Read all positions from parameters
-        self.goals = []
-        for name in goal_names:
+        # Read all velocities from parameters
+        self.velocities = []
+        for name in vel_names:
             self.get_logger().debug(
-                'Extracting positions for goal {}'.format(name)
+                'Extracting velocities for goal {}'.format(name)
             )
 
             self.declare_parameter(name)
-            goal = self.get_parameter(name).value
-            if goal is None or len(goal) == 0:
+            velocity = self.get_parameter(name).value
+            if velocity is None or len(velocity) == 0:
                 raise Exception(f'Values for goal "{name}" not set!')
 
-            float_goal = []
-            for value in goal:
-                float_goal.append(float(value))
-            self.goals.append(float_goal)
+            float_velocities = []
+            for value in velocity:
+                float_velocities.append(float(value))
+            self.velocities.append(float_velocities)
+
+        # Read all accelerations from parameters
+        self.accelerations = []
+        for name in acc_names:
+            self.get_logger().debug(
+                'Extracting accelerations for goal {}'.format(name)
+            )
+
+            self.declare_parameter(name)
+            acceleration = self.get_parameter(name).value
+            if acceleration is None or len(velocity) == 0:
+                raise Exception(f'Values for goal "{name}" not set!')
+
+            float_accelerations = []
+            for value in acceleration:
+                float_accelerations.append(float(value))
+            self.accelerations.append(float_accelerations)
 
         publish_topic = "/" + controller_name + "/" + "joint_trajectory"
 
         self.get_logger().info(
             'Publishing {} goals on topic "{}" every {} s'.format(
-                len(goal_names), publish_topic, wait_sec_between_publish
+                len(vel_names), publish_topic, wait_sec_between_publish
             )
         )
 
@@ -79,9 +98,10 @@ class PublisherVelocity(Node):
         traj = JointTrajectory()
         traj.joint_names = self.joints
         #traj.header.stamp = self.get_clock().now().to_msg()
-        for i in range(len(self.goals)):
+        for i in range(len(self.velocities)):
             point = JointTrajectoryPoint()
-            point.velocities = self.goals[i]
+            point.velocities = self.velocities[i]
+            point.accelerations = self.accelerations[i]
             time = i * 1 + 1
             point.time_from_start = Duration(sec=time)
 
@@ -94,7 +114,7 @@ class PublisherVelocity(Node):
         self.publisher_.publish(traj)
 
         self.i += 1
-        self.i %= len(self.goals)
+        self.i %= len(self.velocities)
 
     def joint_state_callback(self, msg):
 
