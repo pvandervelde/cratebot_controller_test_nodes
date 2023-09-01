@@ -49,7 +49,7 @@ class PublisherJointTrajectory(Node):
 
             self.declare_parameter(name)
             position = self.get_parameter(name).value
-            if position is None or len(velocity) == 0:
+            if position is None or len(position) == 0:
                 raise Exception(f'Values for goal "{name}" not set!')
 
             float_position = []

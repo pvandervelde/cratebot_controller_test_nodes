@@ -66,7 +66,7 @@ class PublisherVelocity(Node):
 
             self.declare_parameter(name)
             acceleration = self.get_parameter(name).value
-            if acceleration is None or len(velocity) == 0:
+            if acceleration is None or len(acceleration) == 0:
                 raise Exception(f'Values for goal "{name}" not set!')
 
             float_accelerations = []
