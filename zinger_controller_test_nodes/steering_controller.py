@@ -20,11 +20,11 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
 
 
-class PublisherJointTrajectory(Node):
+class SteeringController(Node):
     def __init__(self):
-        super().__init__("publisher_joint_trajectory_controller")
+        super().__init__("steering_controller")
         # Declare all parameters
-        self.declare_parameter("controller_name", "position_trajectory_controller")
+        self.declare_parameter("controller_name", "steering_controller")
         self.declare_parameter("publishing_rate_in_hz", 25)
         self.declare_parameter("wait_sec_between_profiles", 1)
         self.declare_parameter("pos_names", ["pos1", "pos2"])
@@ -156,7 +156,7 @@ class PublisherJointTrajectory(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    publisher_joint_trajectory = PublisherJointTrajectory()
+    publisher_joint_trajectory = SteeringController()
 
     rclpy.spin(publisher_joint_trajectory)
     publisher_joint_trajectory.destroy_node()

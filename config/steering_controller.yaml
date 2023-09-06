@@ -1,4 +1,4 @@
-publisher_joint_trajectory_controller:
+steering_controller:
   ros__parameters:
 
     controller_name: "drive_module_steering_angle_controller"

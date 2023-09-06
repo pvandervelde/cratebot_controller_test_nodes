@@ -30,11 +30,11 @@ ARGUMENTS = [
 
 def generate_launch_description():
 
-    velocity_goals = PathJoinSubstitution(
+    drive_config = PathJoinSubstitution(
         [
             FindPackageShare("zinger_controller_test_nodes"),
             "config",
-            "test_velocity_publisher.yaml",
+            "drive_controller.yaml",
         ]
     )
 
@@ -42,11 +42,11 @@ def generate_launch_description():
         [
             Node(
                 package="zinger_controller_test_nodes",
-                executable="publisher_velocity_controller",
-                name="publisher_velocity_controller",
+                executable="drive_controller",
+                name="drive_controller",
                 parameters=[
                     {'use_sim_time': LaunchConfiguration('use_sim_time')},
-                    velocity_goals
+                    drive_config
                 ],
                 arguments= [
                     "--ros-args",

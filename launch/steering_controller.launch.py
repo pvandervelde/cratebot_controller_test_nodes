@@ -30,11 +30,11 @@ ARGUMENTS = [
 
 def generate_launch_description():
 
-    position_goals = PathJoinSubstitution(
+    steering_config = PathJoinSubstitution(
         [
             FindPackageShare("zinger_controller_test_nodes"),
             "config",
-            "test_joint_trajectory_publisher.yaml",
+            "steering_controller.yaml",
         ]
     )
 
@@ -42,11 +42,11 @@ def generate_launch_description():
         [
             Node(
                 package="zinger_controller_test_nodes",
-                executable="publisher_joint_trajectory_controller",
-                name="publisher_joint_trajectory_controller",
+                executable="steering_controller",
+                name="steering_controller",
                 parameters=[
                     {'use_sim_time': LaunchConfiguration('use_sim_time')},
-                    position_goals
+                    steering_config
                 ],
                 arguments= [
                     "--ros-args",

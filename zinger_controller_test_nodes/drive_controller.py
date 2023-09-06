@@ -18,19 +18,21 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
 
 
-class PublisherVelocity(Node):
+class DriveController(Node):
     def __init__(self):
-        super().__init__("publisher_velocity_controller")
+        super().__init__("drive_controller")
         # Declare all parameters
-        self.declare_parameter("controller_name", "velocity_controller")
-        self.declare_parameter("wait_sec_between_publish", 6)
+        self.declare_parameter("controller_name", "drive_controller")
+        self.declare_parameter("publishing_rate_in_hz", 25)
+        self.declare_parameter("wait_sec_between_profiles", 1)
         self.declare_parameter("vel_names", ["vel1", "vel2"])
         self.declare_parameter("acc_names", ["acc1", "acc2"])
         self.declare_parameter("joints", ["joint1", "joint2"])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
-        wait_sec_between_publish = self.get_parameter("wait_sec_between_publish").value
+        publishing_rate_in_hz = self.get_parameter("publishing_rate_in_hz").value
+        wait_sec_between_profiles = self.get_parameter("wait_sec_between_profiles").value
         vel_names = self.get_parameter("vel_names").value
         acc_names = self.get_parameter("acc_names").value
         self.joints = self.get_parameter("joints").value
@@ -74,17 +76,17 @@ class PublisherVelocity(Node):
                 float_accelerations.append(float(value))
             self.accelerations.append(float_accelerations)
 
-        publish_topic = "/" + controller_name + "/" + "joint_trajectory"
+        publish_topic = "/" + controller_name + "/" + "commands"
 
         self.get_logger().info(
             'Publishing {} goals on topic "{}" every {} s'.format(
-                len(vel_names), publish_topic, wait_sec_between_publish
+                len(vel_names), publish_topic, wait_sec_between_profiles
             )
         )
 
         self.publisher_ = self.create_publisher(JointTrajectory, publish_topic, 1)
         self.timer = self.create_timer(
-            wait_sec_between_publish,
+            wait_sec_between_profiles,
             self.timer_callback,
             callback_group=None,
             clock=self.get_clock())
@@ -127,7 +129,7 @@ class PublisherVelocity(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    pub = PublisherVelocity()
+    pub = DriveController()
 
     rclpy.spin(pub)
     pub.destroy_node()
