@@ -10,10 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
 import rclpy
 from rclpy.node import Node
 from builtin_interfaces.msg import Duration
 
+from std_msgs.msg import Float64MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
 
@@ -23,17 +25,22 @@ class PublisherJointTrajectory(Node):
         super().__init__("publisher_joint_trajectory_controller")
         # Declare all parameters
         self.declare_parameter("controller_name", "position_trajectory_controller")
-        self.declare_parameter("wait_sec_between_publish", 6)
+        self.declare_parameter("publishing_rate_in_hz", 25)
+        self.declare_parameter("wait_sec_between_profiles", 1)
         self.declare_parameter("pos_names", ["pos1", "pos2"])
         self.declare_parameter("vel_names", ["vel1", "vel2"])
         self.declare_parameter("joints", ["joint1", "joint2"])
 
         # Read parameters
         controller_name = self.get_parameter("controller_name").value
-        wait_sec_between_publish = self.get_parameter("wait_sec_between_publish").value
+        publishing_rate_in_hz = self.get_parameter("publishing_rate_in_hz").value
+        wait_sec_between_profiles = self.get_parameter("wait_sec_between_profiles").value
         pos_names = self.get_parameter("pos_names").value
         vel_names = self.get_parameter("vel_names").value
         self.joints = self.get_parameter("joints").value
+
+        self.segment_duration_in_seconds = 1.0
+
 
         if self.joints is None or len(self.joints) == 0:
             raise Exception('"joints" parameter is not set!')
@@ -74,17 +81,22 @@ class PublisherJointTrajectory(Node):
                 float_velocity.append(float(value))
             self.velocities.append(float_velocity)
 
-        publish_topic = "/" + controller_name + "/" + "joint_trajectory"
+        self.profile_duration = self.segment_duration_in_seconds * len(self.positions)
+        self.profile_and_wait_duration = self.profile_duration + wait_sec_between_profiles
+
+        publish_topic = "/" + controller_name + "/" + "commands"
 
         self.get_logger().info(
             'Publishing {} goals on topic "{}" every {} s'.format(
-                len(pos_names), publish_topic, wait_sec_between_publish
+                len(pos_names), publish_topic, publishing_rate_in_hz
             )
         )
 
-        self.publisher_ = self.create_publisher(JointTrajectory, publish_topic, 1)
+        self.publisher_ = self.create_publisher(Float64MultiArray, publish_topic, 1)
+
+        self.sequence_start_time = self.get_clock().now()
         self.timer = self.create_timer(
-            wait_sec_between_publish,
+            publishing_rate_in_hz,
             self.timer_callback,
             callback_group=None,
             clock=self.get_clock())
@@ -95,27 +107,43 @@ class PublisherJointTrajectory(Node):
             'Timer callback called ..'
         )
 
-        traj = JointTrajectory()
-        traj.joint_names = self.joints
-        #traj.header.stamp = self.get_clock().now().to_msg()
-        for i in range(len(self.positions)):
-            point = JointTrajectoryPoint()
-            point.positions = self.positions[i]
-            point.velocities = self.velocities[i]
-            #point.accelerations = self.accelerations[i]
-            time = i * 1 + 1
-            point.time_from_start = Duration(sec=time)
+        current_time = self.get_clock().now()
+        trajectory_running_duration: Duration = current_time - self.sequence_start_time
+        if trajectory_running_duration > self.profile_and_wait_duration:
+            self.sequence_start_time = self.get_clock().now()
+            return
 
-            traj.points.append(point)
+        if trajectory_running_duration > self.profile_duration:
+            return
+
+        lower_bound_of_profile_section = int(trajectory_running_duration.nanoseconds() / 1e9)
+        upper_bound_of_profile_section = lower_bound_of_profile_section + 1
+
+        time_fraction = ((trajectory_running_duration.nanoseconds() / 1e9) - lower_bound_of_profile_section) / self.segment_duration_in_seconds
+
+        profile_start_values = self.positions[lower_bound_of_profile_section]
+        profile_end_values = self.positions[upper_bound_of_profile_section]
+
+        # Find the section we're publishing, assuming that each section takes 1 second
+        # 0 - 1 -> first
+
+        values: List[float] = []
+        for i in range(len(profile_start_values)):
+            start = profile_start_values[i]
+            end = profile_end_values[i]
+
+            value = (end - start) * time_fraction
+            values.append(value)
+
+        msg = Float64MultiArray()
+        msg.data = values
 
         self.get_logger().info(
-            'Publishing movement command {} '.format(traj)
+            'Publishing movement command {} '.format(msg)
         )
 
-        self.publisher_.publish(traj)
+        self.publisher_.publish(msg)
 
-        self.i += 1
-        self.i %= len(self.positions)
 
     def joint_state_callback(self, msg):
 
