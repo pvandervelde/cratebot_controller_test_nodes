@@ -41,7 +41,6 @@ class SteeringController(Node):
 
         self.segment_duration_in_seconds = 1.0
 
-
         if self.joints is None or len(self.joints) == 0:
             raise Exception('"joints" parameter is not set!')
 
@@ -82,7 +81,14 @@ class SteeringController(Node):
             self.velocities.append(float_velocity)
 
         self.profile_duration = self.segment_duration_in_seconds * len(self.positions)
+        self.get_logger().info(
+            'Profile duration set to: {} s'.format(self.profile_duration)
+        )
+
         self.profile_and_wait_duration = self.profile_duration + wait_sec_between_profiles
+        self.get_logger().info(
+            'Profile and wait duration set to: {} s'.format(self.profile_and_wait_duration)
+        )
 
         publish_topic = "/" + controller_name + "/" + "commands"
 
@@ -110,12 +116,27 @@ class SteeringController(Node):
         current_time = self.get_clock().now()
         trajectory_running_duration: Duration = current_time - self.sequence_start_time
         running_duration_as_float: float = trajectory_running_duration.nanoseconds / 1e-9
+        self.get_logger().info(
+            'Current trajectory duration {} s'.format(running_duration_as_float)
+        )
+
         if running_duration_as_float > self.profile_and_wait_duration:
             self.sequence_start_time = self.get_clock().now()
+
+            self.get_logger().info(
+                'Trajectory finished resetting start time to: {}'.format(self.sequence_start_time)
+            )
             return
 
         if running_duration_as_float > self.profile_duration:
+            self.get_logger().info(
+                'Trajectory completed waiting for restart time. Current duration {} s. Desired total time {}'.format(running_duration_as_float, self.profile_duration)
+            )
             return
+
+        self.get_logger().info(
+            'Calculating next step in profile at time {} s'.format(running_duration_as_float)
+        )
 
         lower_bound_of_profile_section = int(running_duration_as_float)
         upper_bound_of_profile_section = lower_bound_of_profile_section + 1
