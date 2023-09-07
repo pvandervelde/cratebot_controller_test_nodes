@@ -96,7 +96,7 @@ class SteeringController(Node):
 
         self.sequence_start_time = self.get_clock().now()
         self.timer = self.create_timer(
-            publishing_rate_in_hz,
+            1.0 / publishing_rate_in_hz,
             self.timer_callback,
             callback_group=None,
             clock=self.get_clock())
@@ -113,7 +113,7 @@ class SteeringController(Node):
             self.sequence_start_time = self.get_clock().now()
             return
 
-        if trajectory_running_duration > self.profile_duration:
+        if trajectory_running_duration.nanoseconds / 1e-9 > self.profile_duration:
             return
 
         lower_bound_of_profile_section = int(trajectory_running_duration.nanoseconds() / 1e9)
