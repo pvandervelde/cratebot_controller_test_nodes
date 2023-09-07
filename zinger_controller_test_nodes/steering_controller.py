@@ -109,17 +109,18 @@ class SteeringController(Node):
 
         current_time = self.get_clock().now()
         trajectory_running_duration: Duration = current_time - self.sequence_start_time
-        if trajectory_running_duration > self.profile_and_wait_duration:
+        running_duration_as_float: float = trajectory_running_duration.nanoseconds / 1e-9
+        if running_duration_as_float > self.profile_and_wait_duration:
             self.sequence_start_time = self.get_clock().now()
             return
 
-        if trajectory_running_duration.nanoseconds / 1e-9 > self.profile_duration:
+        if running_duration_as_float > self.profile_duration:
             return
 
-        lower_bound_of_profile_section = int(trajectory_running_duration.nanoseconds() / 1e9)
+        lower_bound_of_profile_section = int(running_duration_as_float)
         upper_bound_of_profile_section = lower_bound_of_profile_section + 1
 
-        time_fraction = ((trajectory_running_duration.nanoseconds() / 1e9) - lower_bound_of_profile_section) / self.segment_duration_in_seconds
+        time_fraction = (running_duration_as_float - lower_bound_of_profile_section) / self.segment_duration_in_seconds
 
         profile_start_values = self.positions[lower_bound_of_profile_section]
         profile_end_values = self.positions[upper_bound_of_profile_section]
