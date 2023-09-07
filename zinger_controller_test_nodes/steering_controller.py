@@ -87,7 +87,7 @@ class SteeringController(Node):
         publish_topic = "/" + controller_name + "/" + "commands"
 
         self.get_logger().info(
-            'Publishing {} goals on topic "{}" every {} s'.format(
+            'Publishing {} goals on topic "{}" at {} Hz'.format(
                 len(pos_names), publish_topic, publishing_rate_in_hz
             )
         )
