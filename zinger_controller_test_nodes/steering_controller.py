@@ -157,7 +157,7 @@ class SteeringController(Node):
             )
             return
 
-        if (upper_bound_of_profile_section > len(self.positions)):
+        if (upper_bound_of_profile_section >= len(self.positions)):
             self.get_logger().info(
                 'Ending profile index out of range. Index is {}. Ignoring'.format(upper_bound_of_profile_section)
             )
