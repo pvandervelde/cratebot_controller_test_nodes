@@ -151,6 +151,18 @@ class SteeringController(Node):
 
         time_fraction = (running_duration_as_float - lower_bound_of_profile_section) / self.segment_duration_in_seconds
 
+        if (lower_bound_of_profile_section < 0):
+            self.get_logger().info(
+                'Starting profile index out of range. Index is {}. Ignoring'.format(lower_bound_of_profile_section)
+            )
+            return
+
+        if (upper_bound_of_profile_section > len(self.positions)):
+            self.get_logger().info(
+                'Ending profile index out of range. Index is {}. Ignoring'.format(upper_bound_of_profile_section)
+            )
+            return
+
         profile_start_values = self.positions[lower_bound_of_profile_section]
         profile_end_values = self.positions[upper_bound_of_profile_section]
 
