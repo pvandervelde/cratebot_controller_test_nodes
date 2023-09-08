@@ -123,7 +123,7 @@ class SteeringController(Node):
             )
         )
 
-        running_duration_as_float: float = trajectory_running_duration.nanoseconds / 1e-9
+        running_duration_as_float: float = trajectory_running_duration.nanoseconds * 1e-9
         self.get_logger().info(
             'Current trajectory duration {} s'.format(running_duration_as_float)
         )
