@@ -94,7 +94,7 @@ class DriveController(Node):
 
         self.get_logger().info(
             'Publishing {} goals on topic "{}" at {} Hz'.format(
-                len(pos_names), publish_topic, publishing_rate_in_hz
+                len(vel_names), publish_topic, publishing_rate_in_hz
             )
         )
 
