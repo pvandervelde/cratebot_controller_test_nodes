@@ -115,6 +115,14 @@ class SteeringController(Node):
 
         current_time = self.get_clock().now()
         trajectory_running_duration: Duration = current_time - self.sequence_start_time
+        self.get_logger().info(
+            'Current trajectory duration {} s. Based on current time {} and sequence start time {}'.format(
+                trajectory_running_duration,
+                current_time,
+                self.sequence_start_time
+            )
+        )
+
         running_duration_as_float: float = trajectory_running_duration.nanoseconds / 1e-9
         self.get_logger().info(
             'Current trajectory duration {} s'.format(running_duration_as_float)
