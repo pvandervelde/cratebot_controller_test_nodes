@@ -162,7 +162,7 @@ class SteeringController(Node):
             start = profile_start_values[i]
             end = profile_end_values[i]
 
-            value = (end - start) * time_fraction
+            value = (end - start) * time_fraction + start
             values.append(value)
 
         msg = Float64MultiArray()
