@@ -1,0 +1,28 @@
+steering_controller:
+  ros__parameters:
+
+    controller_name: "drive_module_steering_angle_controller"
+    publishing_rate_in_hz: 50
+    wait_sec_between_profiles: 2
+
+    pos_names: ["pos1", "pos2", "pos3", "pos4", "pos5"]
+    pos1: [0.0, 0.0, 0.0, 0.0]
+    pos2: [0.5, 0.5, 0.5, 0.5]
+    pos3: [1.0, 1.0, 1.0, 1.0]
+    pos4: [0.5, 0.5, 0.5, 0.5]
+    pos5: [0.0, 0.0, 0.0, 0.0]
+
+    vel_names: ["vel1", "vel2", "vel3", "vel4", "vel5"]
+    vel1: [0.0, 0.0, 0.0, 0.0]
+    vel2: [0.6, 0.6, 0.6, 0.6]
+    vel3: [0.0, 0.0, 0.0, 0.0]
+    vel4: [-0.6, -0.6, -0.6, -0.6]
+    vel5: [0.0, 0.0, 0.0, 0.0]
+
+    joints:
+      - joint_chassis_to_steering_left_front
+      - joint_chassis_to_steering_right_front
+      - joint_chassis_to_steering_left_rear
+      - joint_chassis_to_steering_right_rear
+
+    check_starting_point: false

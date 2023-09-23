@@ -1,0 +1,28 @@
+drive_controller:
+  ros__parameters:
+
+    controller_name: "drive_module_velocity_controller"
+    publishing_rate_in_hz: 50
+    wait_sec_between_profiles: 2
+
+    vel_names: ["vel1", "vel2", "vel3", "vel4", "vel5"]
+    vel1: [0.0, 0.0, 0.0, 0.0]
+    vel2: [0.5, 0.5, 0.5, 0.5]
+    vel3: [1.0, 1.0, 1.0, 1.0]
+    vel4: [0.5, 0.5, 0.5, 0.5]
+    vel5: [0.0, 0.0, 0.0, 0.0]
+
+    acc_names: ["acc1", "acc2", "acc3", "acc4", "acc5"]
+    acc1: [0.0, 0.0, 0.0, 0.0]
+    acc2: [0.6, 0.6, 0.6, 0.6]
+    acc3: [0.0, 0.0, 0.0, 0.0]
+    acc4: [-0.6, -0.6, -0.6, -0.6]
+    acc5: [0.0, 0.0, 0.0, 0.0]
+
+    joints:
+      - joint_steering_to_wheel_left_front
+      - joint_steering_to_wheel_right_front
+      - joint_steering_to_wheel_left_rear
+      - joint_steering_to_wheel_right_rear
+
+    check_starting_point: false
