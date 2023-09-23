@@ -16,9 +16,6 @@ from rclpy.node import Node
 from builtin_interfaces.msg import Duration
 
 from std_msgs.msg import Float64MultiArray
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from sensor_msgs.msg import JointState
-
 
 class SteeringController(Node):
     def __init__(self):
@@ -39,8 +36,10 @@ class SteeringController(Node):
         vel_names = self.get_parameter("vel_names").value
         self.joints = self.get_parameter("joints").value
 
+        # A single segment takes 1 second for now. Just because we have to pick something
         self.segment_duration_in_seconds = 1.0
 
+        # If we don't have any joints, we're stuffed, so exit.
         if self.joints is None or len(self.joints) == 0:
             raise Exception('"joints" parameter is not set!')
 
@@ -80,18 +79,20 @@ class SteeringController(Node):
                 float_velocity.append(float(value))
             self.velocities.append(float_velocity)
 
+        # The total time to go through all the positions
         self.profile_duration = self.segment_duration_in_seconds * len(self.positions)
         self.get_logger().info(
             'Profile duration set to: {} s'.format(self.profile_duration)
         )
 
+        # The total time to go through all the positions and then wait for the next cycle to start
         self.profile_and_wait_duration = self.profile_duration + wait_sec_between_profiles
         self.get_logger().info(
             'Profile and wait duration set to: {} s'.format(self.profile_and_wait_duration)
         )
 
+        # Publishing on the command topic of the JointGroupPositionController
         publish_topic = "/" + controller_name + "/" + "commands"
-
         self.get_logger().info(
             'Publishing {} goals on topic "{}" at {} Hz'.format(
                 len(pos_names), publish_topic, publishing_rate_in_hz
@@ -100,19 +101,20 @@ class SteeringController(Node):
 
         self.publisher_ = self.create_publisher(Float64MultiArray, publish_topic, 1)
 
+        # Now that we're initialized we can start the timer to get the sequence going.
         self.sequence_start_time = self.get_clock().now()
         self.timer = self.create_timer(
             1.0 / publishing_rate_in_hz,
             self.timer_callback,
             callback_group=None,
             clock=self.get_clock())
-        self.i = 0
 
     def timer_callback(self):
         self.get_logger().info(
             'Timer callback called ..'
         )
 
+        # Determine how long we are running, in the current sequence.
         current_time = self.get_clock().now()
         trajectory_running_duration: Duration = current_time - self.sequence_start_time
         self.get_logger().info(
@@ -128,6 +130,7 @@ class SteeringController(Node):
             'Current trajectory duration {} s'.format(running_duration_as_float)
         )
 
+        # See if we're beyond the sequence running and wait time. If so we need to start another sequence.
         if running_duration_as_float > self.profile_and_wait_duration:
             self.sequence_start_time = self.get_clock().now()
 
@@ -136,6 +139,7 @@ class SteeringController(Node):
             )
             return
 
+        # See if we're in the wait period
         if running_duration_as_float > self.profile_duration:
             self.get_logger().info(
                 'Trajectory completed waiting for restart time. Current duration {} s. Desired total time {}'.format(running_duration_as_float, self.profile_duration)
@@ -146,6 +150,7 @@ class SteeringController(Node):
             'Calculating next step in profile at time {} s'.format(running_duration_as_float)
         )
 
+        # Figure out which sequence point we are interested in.
         lower_bound_of_profile_section = int(running_duration_as_float)
         upper_bound_of_profile_section = lower_bound_of_profile_section + 1
 
@@ -166,9 +171,7 @@ class SteeringController(Node):
         profile_start_values = self.positions[lower_bound_of_profile_section]
         profile_end_values = self.positions[upper_bound_of_profile_section]
 
-        # Find the section we're publishing, assuming that each section takes 1 second
-        # 0 - 1 -> first
-
+        # Use linear interpolation of the start and end point to determine what value we should be publishing
         values: List[float] = []
         for i in range(len(profile_start_values)):
             start = profile_start_values[i]
@@ -185,15 +188,6 @@ class SteeringController(Node):
         )
 
         self.publisher_.publish(msg)
-
-
-    def joint_state_callback(self, msg):
-
-        if not self.joint_state_msg_received:
-            self.joint_state_msg_received = True
-        else:
-            return
-
 
 def main(args=None):
     rclpy.init(args=args)
